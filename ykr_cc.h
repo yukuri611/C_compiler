@@ -9,6 +9,8 @@
 //main.c
 //
 
+
+
 extern char *user_input;
 
 
@@ -76,6 +78,19 @@ Node *expr();
 extern Node *code[100];
 
 void program();
+
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+};
+
+extern LVar *locals;
+
+LVar *find_lvar(Token *tok);
 
 
 //

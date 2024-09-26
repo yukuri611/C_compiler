@@ -32,5 +32,8 @@ assert 0 '1<1;'
 assert 1 '1<=1;'
 assert 1 '1<=2;'
 assert 10 "a=10;"
+assert 3 "foo=3;"
+assert 2 "bar=2;"
+
 
 echo OK
