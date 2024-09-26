@@ -1,7 +1,17 @@
 #include "ykr_cc.h"
+
 bool consume(char *op);
+Token *consume_ident();
 void expect(char *op);
 int expect_number();
+Node *new_node(NodeKind kind);
+Node *new_binary(NodeKind kind, Node *lhs, Node *rhs);
+Node *new_num(int val);
+
+void program();
+Node *stmt();
+Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();
@@ -38,13 +48,20 @@ bool consume(char *op) {
     return true;
 }
 
-void expect(char *op) {
-    if (token->kind != TK_RESERVED || 
-        strlen(op) != token->len ||
-        memcmp(token->str, op, token->len)) {
-        error_at(token->str, "'%c'ではありません", op);
+Token *consume_ident() {
+    if (token->kind != TK_IDENT) {
+        return NULL;
     }
+    Token *t = token;
     token = token->next;
+    return t;
+}
+
+void expect(char *op) {
+  if (token->kind != TK_RESERVED || strlen(op) != token->len ||
+      memcmp(token->str, op, token->len))
+    error_at(token->str, "\"%s\" がありません", op);
+  token = token->next;
 }
 
 int expect_number() {
@@ -56,10 +73,35 @@ int expect_number() {
     return val;
 }
 
+Node *code[100];
 
+void program() {
+    //printf("Starting program parsing\n"); // デバッグプリント
+    int i = 0;
+    while (!at_eof()) {
+        code[i++] = stmt();
+    code[i] = NULL;
+    }
+    //printf("Program parsing complete\n"); // デバッグプリント
+   
+}
+
+Node *stmt() {
+    Node *node = expr();
+    expect(";");
+    return node;
+}
 
 Node *expr() {
-    return equality();
+    return assign();
+}
+
+Node *assign() {
+    Node *node = equality();
+    if (consume("=")) {
+        node = new_binary(ND_ASSIGN, node, assign());
+    }
+    return node;
 }
 
 Node *equality() {
@@ -134,6 +176,13 @@ Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
+        return node;
+    }
+    Token *tok = consume_ident();
+    if (tok) {
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_LVAR;
+        node->offset = (tok->str[0] - 'a' + 1) * 8;
         return node;
     }
     return new_num(expect_number());

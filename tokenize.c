@@ -1,8 +1,15 @@
 #include "ykr_cc.h"
 
 //user_inputとtokenの定義
-char *user_input;
 Token *token;
+
+void error(char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    exit(1);
+}
 
 void error_at(char *loc, char *fmt, ...) {
     va_list ap;
@@ -38,7 +45,7 @@ bool startswith(char *p, char *q) {
 }
 
 // Tokenの連結リストを作成する。
-Token *tokenize() {
+void tokenize() {
     char *p = user_input;
     Token head;
     head.next = NULL;
@@ -54,7 +61,7 @@ Token *tokenize() {
             p += 2;
             continue;
         }
-        if (strchr("+-*/()<>", *p)) {
+        if (strchr("+-*/()<>;=", *p)) {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
@@ -65,10 +72,16 @@ Token *tokenize() {
             cur->len = p - q;
             continue;
         }
+        if ('a' <= *p && *p <='z') {
+            cur = new_token(TK_IDENT, cur, p++, 1);
+            continue;
+        }
 
         error_at(p, "トークナイズできません");
     }
 
     new_token(TK_EOF, cur, p, 0);
-    return head.next;
+    token = head.next;
+    //printf("Tokenization complete\n"); // デバッグプリント
+
 }
