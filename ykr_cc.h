@@ -24,6 +24,7 @@ typedef enum {
     TK_IDENT,    // 識別子
     TK_NUM, // 整数トークン 
     TK_EOF,      // 入力の終わりを表すトークン
+    TK_RETURN, // return
 } TokenKind;
 
 typedef struct Token Token;
@@ -41,6 +42,8 @@ void error_at(char *loc, char *fmt, ...);
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
 void tokenize();
+bool startswith(char *p, char *q);
+int is_alnum(char c);
 
 
 extern Token *token;
@@ -61,6 +64,7 @@ typedef enum {
     ND_LT,  // <
     ND_LE,  // <=
     ND_NUM, // 整数
+    ND_RETURN, // return
 } NodeKind;
 
 typedef struct Node Node;

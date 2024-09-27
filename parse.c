@@ -33,6 +33,12 @@ Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
     return node;
 }
 
+Node *new_unary(NodeKind kind, Node *lhs) {
+    Node *node = new_node(kind);
+    node->lhs = lhs;
+    return node;
+}
+
 Node *new_num(int val) {
     Node *node = new_node(ND_NUM);
     node->val = val;
@@ -81,15 +87,23 @@ void program() {
     int i = 0;
     while (!at_eof()) {
         code[i++] = stmt();
-    code[i] = NULL;
     }
-    //printf("Program parsing complete\n"); // デバッグプリント
-   
+    code[i] = NULL;
+    // printf("Program parsing complete\n"); // デバッグプリント
 }
 
 Node *stmt() {
-    Node *node = expr();
+    Node *node;
+
+    if (token->kind == TK_RETURN) { 
+        token = token->next;
+        node = new_unary(ND_RETURN, expr());
+    } else {
+        node = expr();
+    }
+
     expect(";");
+    
     return node;
 }
 
@@ -190,8 +204,7 @@ Node *primary() {
     }
     Token *tok = consume_ident();
     if (tok) {
-        Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
+        Node *node = new_node(ND_LVAR);
 
         LVar *lvar = find_lvar(tok);
         if (lvar) {

@@ -44,6 +44,13 @@ bool startswith(char *p, char *q) {
     return memcmp(p, q, strlen(q)) == 0;
 }
 
+int is_alnum(char c) {
+    return ('a' <= c && c <= 'z') || 
+    ('A' <= c && c <= 'Z') || 
+    ('0' <= c && c <= '9') || 
+    (c == '_');
+}
+
 // Tokenの連結リストを作成する。
 void tokenize() {
     char *p = user_input;
@@ -51,9 +58,16 @@ void tokenize() {
     head.next = NULL;
     Token *cur = &head;
 
+    // printf("Starting tokenization\n"); // デバッグプリント
+
     while (*p) {
         if (isspace(*p)) {
             p++;
+            continue;
+        }
+        if (startswith(p, "return") && !is_alnum(p[6])) {
+            cur = new_token(TK_RETURN, cur, p, 6);
+            p += 6;
             continue;
         }
         if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=")) {
@@ -79,7 +93,7 @@ void tokenize() {
                 p++;
                 count++;
             }
-            cur = new_token(TK_IDENT, cur, p, count);
+            cur = new_token(TK_IDENT, cur, start, count);
             continue;
         }
 
@@ -88,6 +102,12 @@ void tokenize() {
 
     new_token(TK_EOF, cur, p, 0);
     token = head.next;
-    //printf("Tokenization complete\n"); // デバッグプリント
+
+    // Token *t = token;
+    // while (t) {
+    //     printf("Token kind: %d, str: %.*s\n", t->kind, t->len, t->str);
+    //     t = t->next;
+    // }
+    // printf("Tokenization complete\n"); // デバッグプリント
 
 }
